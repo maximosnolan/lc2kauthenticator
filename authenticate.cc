@@ -26,23 +26,23 @@ namespace authenticator {
     [[maybe_unused]]    std::optional<std::ssize_t offset
     };
 
-    [[no_discard]] static inline std::optional<line> parse_line(){
+    [[nodiscard]] static inline std::optional<line> parse_line(){
 
     }
 
-    [[no_discard]] inline std::optional<std::ssize_t> parse_reg(line & line_in){
+    [[nodiscard]] inline std::optional<std::ssize_t> parse_reg(line & line_in){
             if (line_in.m_RegA < 0 || line_in.m_RegA > 8) [[unlikely]] 
                 return line_in.m_RegA;
             if  (line_in.m_RegB < 0 || line_in.m_RegB > 8) [[unlikely]] 
                 return line_in.m_RegB;
             if (line_in.m_RegDest.has_value()){
-                if  (line_in.m_RegDest < 0 || line_in.m_RegDest > 8) [[unlikely]] 
+                if  (line_in.m_RegDest < 0 || line_in.m_RegDest >= 8) [[unlikely]] 
                     return line_in.m_RegDest
             }
             return {}; 
     }
 
-    [[no_discard]] inline std::optional<std::string> parse_opcode(line & line_in){
+    [[nodiscard]] inline std::optional<std::string> parse_opcode(line & line_in){
         auto val = std::to_upper(line_in.m_Opcode);
         if (val == "ADD" || val == "NOR" || val == "LW" || val == "SW" || val == "BEQ" || val == "JALR" || val == "NOOP" || val == "HALT") {
             return {};
@@ -50,7 +50,7 @@ namespace authenticator {
         return line_in.m_Opcode;
     }
 
-    [[no_discard]] inline std::optional<std::string> parse_label(line & line_in) noexcept {
+    [[nodiscard]] inline std::optional<std::string> parse_label(line & line_in){
         if(line_in.m_label.has_value()){
             [first, second] = labels.find(line_in.m_label);
             if(first) [[unlikely]] {
