@@ -1,4 +1,4 @@
-label   add     1       2       3
+LABEL   add     1       2       3
         nor     2       3       5
         beq     0       0       4
         lw      0       3       label

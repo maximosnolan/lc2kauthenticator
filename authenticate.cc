@@ -14,7 +14,8 @@
 #include <string.h>
 
 #define MAXLINELENGTH 1000
-
+#define debug
+#define LOG(indicator, msg) std::cout << indicator << ": " << msg << "\n";
 
 namespace authenticator {
     std::unordered_set<std::string> labels;
@@ -23,8 +24,8 @@ namespace authenticator {
     struct line {
     [[maybe_unused]]    std::optional<std::string> m_label;
                         std::string m_Opcode;
-                        ssize_t m_RegA;
-                        ssize_t m_RegB;
+                        int32_t m_RegA;
+                        int32_t m_RegB;
     [[maybe_unused]]    std::optional<ssize_t> m_RegDest;
     [[maybe_unused]]    std::optional<ssize_t> offset;
     [[maybe_unused]]    std::optional<std::string> m_label_dest;
@@ -38,10 +39,7 @@ namespace authenticator {
     char label[MAXLINELENGTH], opcode[MAXLINELENGTH], arg0[MAXLINELENGTH], arg1[MAXLINELENGTH], arg2[MAXLINELENGTH];
 	label[0] = opcode[0] = arg0[0] = arg1[0] = arg2[0] = '\0';
 	if (fgets(Fileline, MAXLINELENGTH, inFilePtr) == NULL) {
-		return {};
-	}
-	if (strchr(Fileline, '\n') == NULL) {
-		printf("error: line too long\n");
+        printf("EOF");
 		return {};
 	}
 	char* ptr = Fileline;
@@ -50,12 +48,24 @@ namespace authenticator {
 	}
 	sscanf(ptr, "%*[\t\n\r ]%[^\t\n\r ]%*[\t\n\r ]%[^\t\n\r ]%*[\t\n\r ]%[^\t\n\r ]%*[\t\n\r ]%[^\t\n\r ]",
 		opcode, arg0, arg1, arg2);
-	std::optional<authenticator::line> victim;
-    victim.value() = line((std::string)label, (std::string)opcode, (ssize_t)arg0, (ssize_t)arg1, (ssize_t)arg2, (ssize_t)arg2, (ssize_t)arg2 ,(std::string)arg2);
-    return victim; 
+    std::cout << "\n";
+    #ifdef debug
+    LOG("label", label);
+    LOG("opcode", opcode);
+    LOG("regA", arg0);
+    LOG("regB", arg1);
+    #endif
+    LOG("destreg/offset/label", arg2);
+    line victim = line((std::string)label, (std::string)opcode, (ssize_t)arg0, (ssize_t)arg1, (ssize_t)arg2, (ssize_t)arg2, (ssize_t)arg2 ,(std::string)arg2);
+    return std::optional<std::reference_wrapper<authenticator::line>>{victim}; 
 }
 
     [[nodiscard]] inline std::optional<ssize_t> parse_reg(line & line_in){
+        #ifdef debug
+        LOG("regA value", line_in.m_RegA);
+        LOG("regB value", line_in.m_RegB);
+        LOG("regDest value", line_in.m_RegDest.value());
+        #endif
             if (line_in.m_RegA < 0 || line_in.m_RegA > 8) [[unlikely]] 
                 return line_in.m_RegA;
             if  (line_in.m_RegB < 0 || line_in.m_RegB > 8) [[unlikely]] 
@@ -106,7 +116,7 @@ int main(int argc, char ** argv){
                  if(auto reg_valid = authenticator::parse_reg(line_val.value()); reg_valid){
                     printf("Error parsing register %d on line %d",reg_valid , pc);
                      return false;
-                 }
+                 } 
                  if (auto op = authenticator::parse_opcode(line_val.value()); op){
                      printf("Error parsing opcode %s on line %d", op, pc);
                      return false;
@@ -116,6 +126,8 @@ int main(int argc, char ** argv){
                      return false;
                 }
                 authenticator::curr_pc++;
+             } else {
+                 return true;
              }
          }
          return true; 
