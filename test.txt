@@ -1,5 +1,5 @@
-LABEL   add     1       2       3
+label   add     1       2       3
         nor     2       3       5
         beq     0       0       4
-        lw      0       3       label
+        lw      10       3       label
         halt
